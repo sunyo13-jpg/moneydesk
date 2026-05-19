@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoneyDesk - บันทึกรายรับรายจ่าย</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="auth-view" id="authView">
+        <div class="brand-panel">
+          <div class="mac-window">
+            <div class="traffic-lights" aria-hidden="true">
+              <span class="red"></span>
+              <span class="yellow"></span>
+              <span class="green"></span>
+            </div>
+            <div class="preview-card">
+              <div>
+                <p class="eyebrow">MoneyDesk</p>
+                <h1>บัญชีส่วนตัวที่อ่านง่ายเหมือนใช้ macOS</h1>
+              </div>
+              <div class="mini-chart" aria-hidden="true">
+                <span style="height: 38%"></span>
+                <span style="height: 72%"></span>
+                <span style="height: 48%"></span>
+                <span style="height: 86%"></span>
+                <span style="height: 60%"></span>
+              </div>
+              <div class="floating-total">
+                <small>คงเหลือเดือนนี้</small>
+                <strong>฿24,850</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form class="auth-card glass" id="authForm">
+          <div>
+            <p class="eyebrow">เริ่มใช้งาน</p>
+            <h2 id="authTitle">เข้าสู่ระบบ</h2>
+            <p class="muted">ข้อมูลของแต่ละบัญชีจะถูกแยกออกจากกันบนเครื่องนี้</p>
+          </div>
+
+          <div class="segmented" role="tablist" aria-label="เลือกโหมด">
+            <button type="button" class="segment active" id="loginTab">เข้าสู่ระบบ</button>
+            <button type="button" class="segment" id="registerTab">สมัครใช้งาน</button>
+          </div>
+
+          <label>
+            ชื่อผู้ใช้
+            <input id="username" autocomplete="username" required minlength="3" placeholder="เช่น sunii" />
+          </label>
+          <label>
+            รหัสผ่าน
+            <input id="password" type="password" autocomplete="current-password" required minlength="4" placeholder="อย่างน้อย 4 ตัวอักษร" />
+          </label>
+
+          <p class="message" id="authMessage" role="status"></p>
+          <button class="primary-button" type="submit" id="authSubmit">เข้าสู่ระบบ</button>
+        </form>
+      </section>
+
+      <section class="app-view hidden" id="appView">
+        <aside class="sidebar glass">
+          <div class="sidebar-top">
+            <div class="app-icon">฿</div>
+            <div>
+              <strong>MoneyDesk</strong>
+              <span>บัญชีส่วนตัว</span>
+            </div>
+          </div>
+          <nav class="nav-list" aria-label="เมนูหลัก">
+            <a class="active" href="#dashboard">Dashboard</a>
+            <a href="#transactions">รายการ</a>
+            <a href="#add">เพิ่มข้อมูล</a>
+          </nav>
+          <div class="user-pill">
+            <div>
+              <small>ผู้ใช้</small>
+              <strong id="currentUser">-</strong>
+            </div>
+            <button class="icon-button" id="logoutButton" title="ออกจากระบบ" aria-label="ออกจากระบบ">↗</button>
+          </div>
+        </aside>
+
+        <div class="content">
+          <header class="topbar glass">
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h2>สรุปรายรับรายจ่าย</h2>
+            </div>
+            <div class="toolbar">
+              <input type="month" id="monthFilter" />
+              <button class="ghost-button" id="seedButton" type="button">เติมข้อมูลตัวอย่าง</button>
+            </div>
+          </header>
+
+          <section class="summary-grid" id="dashboard">
+            <article class="metric income">
+              <span>รายรับ</span>
+              <strong id="incomeTotal">฿0</strong>
+              <small>รวมเฉพาะเดือนที่เลือก</small>
+            </article>
+            <article class="metric expense">
+              <span>รายจ่าย</span>
+              <strong id="expenseTotal">฿0</strong>
+              <small>ค่าใช้จ่ายทั้งหมด</small>
+            </article>
+            <article class="metric balance">
+              <span>คงเหลือ</span>
+              <strong id="balanceTotal">฿0</strong>
+              <small id="balanceHint">พร้อมวางแผนต่อ</small>
+            </article>
+          </section>
+
+          <section class="workspace-grid">
+            <form class="entry-panel glass" id="transactionForm">
+              <div class="section-title" id="add">
+                <h3>เพิ่มรายการ</h3>
+                <span>บันทึกเร็วใน 30 วินาที</span>
+              </div>
+              <div class="type-toggle">
+                <input type="radio" name="type" value="income" id="typeIncome" checked />
+                <label for="typeIncome">รายรับ</label>
+                <input type="radio" name="type" value="expense" id="typeExpense" />
+                <label for="typeExpense">รายจ่าย</label>
+              </div>
+              <label>
+                รายละเอียด
+                <input id="titleInput" required placeholder="เช่น เงินเดือน, กาแฟ, ค่าเดินทาง" />
+              </label>
+              <div class="form-row">
+                <label>
+                  จำนวนเงิน
+                  <input id="amountInput" type="number" min="1" step="1" required placeholder="0" />
+                </label>
+                <label>
+                  วันที่
+                  <input id="dateInput" type="date" required />
+                </label>
+              </div>
+              <label>
+                หมวดหมู่
+                <select id="categoryInput">
+                  <option>เงินเดือน</option>
+                  <option>งานเสริม</option>
+                  <option>อาหาร</option>
+                  <option>เดินทาง</option>
+                  <option>บ้าน</option>
+                  <option>สุขภาพ</option>
+                  <option>ช้อปปิ้ง</option>
+                  <option>อื่นๆ</option>
+                </select>
+              </label>
+              <button class="primary-button" type="submit">บันทึกรายการ</button>
+            </form>
+
+            <section class="analysis-panel glass">
+              <div class="section-title">
+                <h3>ภาพรวมหมวดหมู่</h3>
+                <span id="chartCaption">ยังไม่มีข้อมูล</span>
+              </div>
+              <div class="chart-area" id="categoryChart" aria-label="กราฟรายจ่ายตามหมวดหมู่"></div>
+            </section>
+          </section>
+
+          <section class="table-panel glass" id="transactions">
+            <div class="section-title">
+              <h3>รายการล่าสุด</h3>
+              <span id="transactionCount">0 รายการ</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>วันที่</th>
+                    <th>รายละเอียด</th>
+                    <th>หมวดหมู่</th>
+                    <th>ประเภท</th>
+                    <th class="right">จำนวน</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="transactionTable"></tbody>
+              </table>
+            </div>
+            <p class="empty-state" id="emptyState">ยังไม่มีรายการในเดือนนี้ ลองเพิ่มรายการแรกของคุณได้เลย</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
