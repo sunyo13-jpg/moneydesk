@@ -4,12 +4,39 @@
   --muted: #6a7280;
   --line: rgba(110, 122, 145, 0.2);
   --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.74);
+  --control-bg: rgba(255, 255, 255, 0.82);
+  --soft-bg: rgba(255, 255, 255, 0.58);
+  --segment-bg: rgba(107, 114, 128, 0.12);
+  --active-bg: #ffffff;
+  --page-bg:
+    radial-gradient(circle at 12% 8%, rgba(45, 127, 249, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 12%, rgba(32, 180, 134, 0.14), transparent 30%),
+    linear-gradient(135deg, #f7f9fc 0%, #e7edf6 46%, #f4f6fb 100%);
   --shadow: 0 24px 70px rgba(39, 51, 76, 0.18);
   --blue: #2d7ff9;
   --mint: #20b486;
   --rose: #f05c7a;
   --amber: #f6aa3d;
   --violet: #8b5cf6;
+}
+
+:root[data-theme="dark"] {
+  --bg: #111722;
+  --ink: #eef4ff;
+  --muted: #a8b2c3;
+  --line: rgba(206, 217, 236, 0.16);
+  --glass: rgba(20, 28, 42, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --control-bg: rgba(12, 18, 30, 0.82);
+  --soft-bg: rgba(255, 255, 255, 0.07);
+  --segment-bg: rgba(255, 255, 255, 0.08);
+  --active-bg: rgba(255, 255, 255, 0.14);
+  --page-bg:
+    radial-gradient(circle at 12% 8%, rgba(45, 127, 249, 0.26), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(32, 180, 134, 0.18), transparent 30%),
+    linear-gradient(135deg, #0d1320 0%, #151c2b 48%, #0f1623 100%);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -25,10 +52,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: "Inter", "Noto Sans Thai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(45, 127, 249, 0.18), transparent 28%),
-    radial-gradient(circle at 88% 12%, rgba(32, 180, 134, 0.14), transparent 30%),
-    linear-gradient(135deg, #f7f9fc 0%, #e7edf6 46%, #f4f6fb 100%);
+  background: var(--page-bg);
 }
 
 button,
@@ -50,7 +74,7 @@ button {
 
 .glass {
   background: var(--glass);
-  border: 1px solid rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
   backdrop-filter: blur(28px) saturate(140%);
 }
@@ -81,6 +105,11 @@ button {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(248, 251, 255, 0.42));
   border: 1px solid rgba(255, 255, 255, 0.85);
   box-shadow: 0 40px 90px rgba(44, 59, 85, 0.22);
+}
+
+:root[data-theme="dark"] .mac-window {
+  background: linear-gradient(145deg, rgba(28, 38, 56, 0.9), rgba(18, 25, 38, 0.62));
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .traffic-lights {
@@ -161,7 +190,7 @@ button {
   bottom: 44px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--active-bg);
   color: var(--ink);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
 }
@@ -206,7 +235,7 @@ button {
   gap: 6px;
   padding: 6px;
   border-radius: 14px;
-  background: rgba(107, 114, 128, 0.12);
+  background: var(--segment-bg);
 }
 
 .segment,
@@ -224,14 +253,14 @@ button {
 .segment.active,
 .type-toggle input:checked + label {
   color: var(--ink);
-  background: white;
+  background: var(--active-bg);
   box-shadow: 0 8px 18px rgba(39, 51, 76, 0.12);
 }
 
 label {
   display: grid;
   gap: 8px;
-  color: #394150;
+  color: var(--ink);
   font-size: 14px;
   font-weight: 700;
 }
@@ -244,7 +273,7 @@ select {
   border-radius: 14px;
   padding: 0 14px;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--control-bg);
   outline: none;
 }
 
@@ -272,7 +301,7 @@ select:focus {
 .ghost-button {
   padding: 0 16px;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--control-bg);
   border: 1px solid var(--line);
 }
 
@@ -280,8 +309,18 @@ select:focus {
   width: 44px;
   min-height: 44px;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--control-bg);
   border: 1px solid var(--line);
+}
+
+.theme-toggle {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  background: var(--control-bg);
+  font-weight: 800;
 }
 
 .message {
@@ -354,7 +393,7 @@ select:focus {
 .nav-list a.active,
 .nav-list a:hover {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--active-bg);
 }
 
 .user-pill {
@@ -365,7 +404,7 @@ select:focus {
   gap: 12px;
   padding: 12px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.52);
+  background: var(--soft-bg);
 }
 
 .content {
@@ -397,6 +436,12 @@ select:focus {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+}
+
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
 }
 
 .metric {
@@ -442,6 +487,7 @@ select:focus {
 
 .entry-panel,
 .analysis-panel,
+.trend-panel,
 .table-panel {
   padding: 22px;
   border-radius: 26px;
@@ -478,6 +524,101 @@ select:focus {
   gap: 12px;
 }
 
+.comparison-chart {
+  min-height: 300px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 14px;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.chart-legend i {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.legend-income {
+  background: var(--mint);
+}
+
+.legend-expense {
+  background: var(--rose);
+}
+
+.compare-bars {
+  min-height: 245px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  align-items: end;
+  gap: 14px;
+  padding: 12px 0 0;
+}
+
+.compare-group {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.compare-columns {
+  width: 100%;
+  height: 170px;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--soft-bg);
+  border: 1px solid var(--line);
+}
+
+.compare-bar {
+  width: clamp(16px, 28%, 30px);
+  min-height: 6px;
+  border-radius: 999px 999px 8px 8px;
+}
+
+.income-bar {
+  background: linear-gradient(180deg, #76e4c5, var(--mint));
+}
+
+.expense-bar {
+  background: linear-gradient(180deg, #ff9aa9, var(--rose));
+}
+
+.compare-group strong {
+  max-width: 100%;
+  color: var(--ink);
+  font-size: 13px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.compare-group small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
 .bar-row {
   display: grid;
   grid-template-columns: 96px 1fr 90px;
@@ -495,7 +636,7 @@ select:focus {
   height: 16px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(107, 114, 128, 0.14);
+  background: var(--segment-bg);
 }
 
 .bar-fill {
@@ -577,7 +718,7 @@ td {
   padding: 18px;
   border-radius: 16px;
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--soft-bg);
   text-align: center;
   font-weight: 700;
 }
@@ -585,6 +726,7 @@ td {
 @media (max-width: 1060px) {
   .auth-view,
   .app-view,
+  .dashboard-charts,
   .workspace-grid {
     grid-template-columns: 1fr;
   }
@@ -640,6 +782,14 @@ td {
   .summary-grid,
   .nav-list {
     grid-template-columns: 1fr;
+  }
+
+  .comparison-chart {
+    min-height: 260px;
+  }
+
+  .compare-bars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .topbar,

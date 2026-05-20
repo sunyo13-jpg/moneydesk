@@ -22,7 +22,7 @@
             <div class="preview-card">
               <div>
                 <p class="eyebrow">MoneyDesk</p>
-                <h1>ทำบัญชีรายรับ/รายจ่ายง่ายๆบนเว็บSun</h1>
+                <h1>ทำบัญชีรายรับรายจ่ายง่ายๆบนเว็บ Sun</h1>
               </div>
               <div class="mini-chart" aria-hidden="true">
                 <span style="height: 38%"></span>
@@ -96,6 +96,7 @@
             </div>
             <div class="toolbar">
               <input type="month" id="monthFilter" />
+              <button class="theme-toggle" id="themeToggle" type="button" aria-label="เปลี่ยนธีม">โหมดมืด</button>
               <button class="ghost-button" id="seedButton" type="button">เติมข้อมูลตัวอย่าง</button>
             </div>
           </header>
@@ -115,6 +116,24 @@
               <span>คงเหลือ</span>
               <strong id="balanceTotal">฿0</strong>
               <small id="balanceHint">พร้อมวางแผนต่อ</small>
+            </article>
+          </section>
+
+          <section class="dashboard-charts">
+            <article class="trend-panel glass">
+              <div class="section-title">
+                <h3>กราฟรายสัปดาห์</h3>
+                <span id="weeklyChartCaption">รายรับเทียบรายจ่ายในเดือนที่เลือก</span>
+              </div>
+              <div class="comparison-chart" id="weeklyChart" aria-label="กราฟรายรับรายจ่ายรายสัปดาห์"></div>
+            </article>
+
+            <article class="trend-panel glass">
+              <div class="section-title">
+                <h3>กราฟรายเดือน</h3>
+                <span id="monthlyChartCaption">ย้อนหลัง 6 เดือนล่าสุด</span>
+              </div>
+              <div class="comparison-chart" id="monthlyChart" aria-label="กราฟรายรับรายจ่ายรายเดือน"></div>
             </article>
           </section>
 

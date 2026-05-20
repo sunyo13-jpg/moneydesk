@@ -14,6 +14,7 @@ const currentUserLabel = document.querySelector("#currentUser");
 const logoutButton = document.querySelector("#logoutButton");
 const monthFilter = document.querySelector("#monthFilter");
 const seedButton = document.querySelector("#seedButton");
+const themeToggle = document.querySelector("#themeToggle");
 const transactionForm = document.querySelector("#transactionForm");
 const titleInput = document.querySelector("#titleInput");
 const amountInput = document.querySelector("#amountInput");
@@ -25,6 +26,10 @@ const balanceTotal = document.querySelector("#balanceTotal");
 const balanceHint = document.querySelector("#balanceHint");
 const categoryChart = document.querySelector("#categoryChart");
 const chartCaption = document.querySelector("#chartCaption");
+const weeklyChart = document.querySelector("#weeklyChart");
+const monthlyChart = document.querySelector("#monthlyChart");
+const weeklyChartCaption = document.querySelector("#weeklyChartCaption");
+const monthlyChartCaption = document.querySelector("#monthlyChartCaption");
 const transactionTable = document.querySelector("#transactionTable");
 const transactionCount = document.querySelector("#transactionCount");
 const emptyState = document.querySelector("#emptyState");
@@ -32,6 +37,7 @@ const emptyState = document.querySelector("#emptyState");
 let mode = "login";
 let activeUser = "";
 let transactions = [];
+let theme = localStorage.getItem("moneydesk_theme") || "light";
 
 const today = new Date();
 const yyyy = today.getFullYear();
@@ -39,6 +45,8 @@ const mm = String(today.getMonth() + 1).padStart(2, "0");
 const dd = String(today.getDate()).padStart(2, "0");
 monthFilter.value = `${yyyy}-${mm}`;
 dateInput.value = `${yyyy}-${mm}-${dd}`;
+
+applyTheme(theme);
 
 function getToken() {
   return localStorage.getItem(SESSION_KEY) || "";
@@ -50,6 +58,16 @@ function setToken(token) {
 
 function clearToken() {
   localStorage.removeItem(SESSION_KEY);
+}
+
+function applyTheme(nextTheme) {
+  theme = nextTheme === "dark" ? "dark" : "light";
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem("moneydesk_theme", theme);
+  if (themeToggle) {
+    themeToggle.textContent = theme === "dark" ? "โหมดสว่าง" : "โหมดมืด";
+    themeToggle.setAttribute("aria-label", theme === "dark" ? "เปลี่ยนเป็นโหมดสว่าง" : "เปลี่ยนเป็นโหมดมืด");
+  }
 }
 
 async function api(path, options = {}) {
@@ -98,6 +116,34 @@ function thaiDate(value) {
     month: "short",
     year: "numeric",
   }).format(new Date(`${value}T00:00:00`));
+}
+
+function monthLabel(monthKey) {
+  return new Intl.DateTimeFormat("th-TH", {
+    month: "short",
+    year: "2-digit",
+  }).format(new Date(`${monthKey}-01T00:00:00`));
+}
+
+function addMonths(monthKey, offset) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(year, month - 1 + offset, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function weekOfMonth(dateValue) {
+  const day = Number(dateValue.slice(8, 10));
+  return Math.min(5, Math.ceil(day / 7));
+}
+
+function summarize(items) {
+  return items.reduce(
+    (acc, item) => {
+      acc[item.type] += item.amount;
+      return acc;
+    },
+    { income: 0, expense: 0 },
+  );
 }
 
 function setMode(nextMode) {
@@ -159,6 +205,8 @@ function render() {
 
   renderTable(items);
   renderChart(items);
+  renderWeeklyChart();
+  renderMonthlyChart();
 }
 
 function renderTable(items) {
@@ -212,6 +260,73 @@ function renderChart(items) {
       `;
     })
     .join("");
+}
+
+function renderWeeklyChart() {
+  const monthItems = transactions.filter((item) => item.date.startsWith(monthFilter.value));
+  const rows = Array.from({ length: 5 }, (_, index) => ({
+    label: `สัปดาห์ ${index + 1}`,
+    income: 0,
+    expense: 0,
+  }));
+
+  monthItems.forEach((item) => {
+    const row = rows[weekOfMonth(item.date) - 1];
+    row[item.type] += item.amount;
+  });
+
+  weeklyChartCaption.textContent = `${monthLabel(monthFilter.value)} · ${monthItems.length} รายการ`;
+  renderComparisonChart(weeklyChart, rows, "ยังไม่มีข้อมูลรายสัปดาห์ในเดือนนี้");
+}
+
+function renderMonthlyChart() {
+  const months = Array.from({ length: 6 }, (_, index) => addMonths(monthFilter.value, index - 5));
+  const rows = months.map((monthKey) => {
+    const summary = summarize(transactions.filter((item) => item.date.startsWith(monthKey)));
+    return {
+      label: monthLabel(monthKey),
+      income: summary.income,
+      expense: summary.expense,
+    };
+  });
+
+  monthlyChartCaption.textContent = `${monthLabel(months[0])} - ${monthLabel(months[months.length - 1])}`;
+  renderComparisonChart(monthlyChart, rows, "ยังไม่มีข้อมูลรายเดือนย้อนหลัง");
+}
+
+function renderComparisonChart(container, rows, emptyText) {
+  const maxValue = Math.max(1, ...rows.flatMap((row) => [row.income, row.expense]));
+  const hasData = rows.some((row) => row.income || row.expense);
+
+  if (!hasData) {
+    container.innerHTML = `<p class="empty-state">${emptyText}</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="chart-legend" aria-hidden="true">
+      <span><i class="legend-income"></i>รายรับ</span>
+      <span><i class="legend-expense"></i>รายจ่าย</span>
+    </div>
+    <div class="compare-bars">
+      ${rows
+        .map((row) => {
+          const incomeHeight = Math.max(6, Math.round((row.income / maxValue) * 100));
+          const expenseHeight = Math.max(6, Math.round((row.expense / maxValue) * 100));
+          return `
+            <div class="compare-group">
+              <div class="compare-columns">
+                <span class="compare-bar income-bar" style="height: ${incomeHeight}%" title="รายรับ ${money(row.income)}"></span>
+                <span class="compare-bar expense-bar" style="height: ${expenseHeight}%" title="รายจ่าย ${money(row.expense)}"></span>
+              </div>
+              <strong>${escapeHtml(row.label)}</strong>
+              <small>${money(row.income - row.expense)}</small>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
 }
 
 function createTransaction(formData) {
@@ -285,6 +400,7 @@ logoutButton.addEventListener("click", () => {
 
 monthFilter.addEventListener("change", render);
 seedButton.addEventListener("click", seedDemoData);
+themeToggle.addEventListener("click", () => applyTheme(theme === "dark" ? "light" : "dark"));
 
 transactionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
