@@ -439,9 +439,7 @@ select:focus {
 }
 
 .dashboard-charts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
+  display: block;
 }
 
 .metric {
@@ -524,8 +522,37 @@ select:focus {
   gap: 12px;
 }
 
-.comparison-chart {
-  min-height: 300px;
+.chart-title-row {
+  align-items: center;
+}
+
+.chart-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--segment-bg);
+}
+
+.chart-tab {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 800;
+}
+
+.chart-tab.active {
+  color: var(--ink);
+  background: var(--active-bg);
+  box-shadow: 0 8px 18px rgba(39, 51, 76, 0.12);
+}
+
+.line-chart {
+  min-height: 360px;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 14px;
@@ -561,62 +588,61 @@ select:focus {
   background: var(--rose);
 }
 
-.compare-bars {
-  min-height: 245px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
-  align-items: end;
-  gap: 14px;
-  padding: 12px 0 0;
-}
-
-.compare-group {
-  min-width: 0;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-}
-
-.compare-columns {
+.line-chart-svg {
   width: 100%;
-  height: 170px;
-  display: flex;
-  align-items: end;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px;
-  border-radius: 18px;
+  min-height: 300px;
+  overflow: visible;
+  border-radius: 22px;
   background: var(--soft-bg);
   border: 1px solid var(--line);
 }
 
-.compare-bar {
-  width: clamp(16px, 28%, 30px);
-  min-height: 6px;
-  border-radius: 999px 999px 8px 8px;
+.grid-line {
+  stroke: var(--line);
+  stroke-width: 1;
 }
 
-.income-bar {
-  background: linear-gradient(180deg, #76e4c5, var(--mint));
+.line {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.expense-bar {
-  background: linear-gradient(180deg, #ff9aa9, var(--rose));
+.income-line {
+  stroke: var(--mint);
 }
 
-.compare-group strong {
-  max-width: 100%;
-  color: var(--ink);
+.expense-line {
+  stroke: var(--rose);
+}
+
+.dot {
+  stroke: var(--active-bg);
+  stroke-width: 3;
+}
+
+.income-dot {
+  fill: var(--mint);
+}
+
+.expense-dot {
+  fill: var(--rose);
+}
+
+.axis-label {
+  fill: var(--muted);
   font-size: 13px;
-  text-align: center;
-  overflow-wrap: anywhere;
+  font-weight: 800;
 }
 
-.compare-group small {
-  color: var(--muted);
+.y-label {
   font-size: 12px;
-  font-weight: 800;
-  text-align: center;
+}
+
+.count-label {
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .bar-row {
@@ -784,12 +810,16 @@ td {
     grid-template-columns: 1fr;
   }
 
-  .comparison-chart {
+  .line-chart {
     min-height: 260px;
   }
 
-  .compare-bars {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .line-chart-svg {
+    min-width: 760px;
+  }
+
+  .line-chart {
+    overflow-x: auto;
   }
 
   .topbar,

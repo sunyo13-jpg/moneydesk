@@ -121,19 +121,17 @@
 
           <section class="dashboard-charts">
             <article class="trend-panel glass">
-              <div class="section-title">
-                <h3>กราฟรายสัปดาห์</h3>
-                <span id="weeklyChartCaption">รายรับเทียบรายจ่ายในเดือนที่เลือก</span>
+              <div class="section-title chart-title-row">
+                <div>
+                  <h3>กราฟรายรับรายจ่าย</h3>
+                  <span id="lineChartCaption">รายเดือนย้อนหลัง 6 เดือนล่าสุด</span>
+                </div>
+                <div class="chart-tabs" aria-label="เลือกมุมมองกราฟ">
+                  <button class="chart-tab active" id="monthlyChartTab" type="button">รายเดือน</button>
+                  <button class="chart-tab" id="weeklyChartTab" type="button">รายสัปดาห์</button>
+                </div>
               </div>
-              <div class="comparison-chart" id="weeklyChart" aria-label="กราฟรายรับรายจ่ายรายสัปดาห์"></div>
-            </article>
-
-            <article class="trend-panel glass">
-              <div class="section-title">
-                <h3>กราฟรายเดือน</h3>
-                <span id="monthlyChartCaption">ย้อนหลัง 6 เดือนล่าสุด</span>
-              </div>
-              <div class="comparison-chart" id="monthlyChart" aria-label="กราฟรายรับรายจ่ายรายเดือน"></div>
+              <div class="line-chart" id="financeLineChart" aria-label="กราฟเส้นรายรับรายจ่าย"></div>
             </article>
           </section>
 

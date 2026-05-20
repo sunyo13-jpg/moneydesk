@@ -26,10 +26,10 @@ const balanceTotal = document.querySelector("#balanceTotal");
 const balanceHint = document.querySelector("#balanceHint");
 const categoryChart = document.querySelector("#categoryChart");
 const chartCaption = document.querySelector("#chartCaption");
-const weeklyChart = document.querySelector("#weeklyChart");
-const monthlyChart = document.querySelector("#monthlyChart");
-const weeklyChartCaption = document.querySelector("#weeklyChartCaption");
-const monthlyChartCaption = document.querySelector("#monthlyChartCaption");
+const financeLineChart = document.querySelector("#financeLineChart");
+const lineChartCaption = document.querySelector("#lineChartCaption");
+const monthlyChartTab = document.querySelector("#monthlyChartTab");
+const weeklyChartTab = document.querySelector("#weeklyChartTab");
 const transactionTable = document.querySelector("#transactionTable");
 const transactionCount = document.querySelector("#transactionCount");
 const emptyState = document.querySelector("#emptyState");
@@ -38,6 +38,7 @@ let mode = "login";
 let activeUser = "";
 let transactions = [];
 let theme = localStorage.getItem("moneydesk_theme") || "light";
+let chartView = localStorage.getItem("moneydesk_chart_view") || "monthly";
 
 const today = new Date();
 const yyyy = today.getFullYear();
@@ -146,6 +147,14 @@ function summarize(items) {
   );
 }
 
+function setChartView(nextView) {
+  chartView = nextView === "weekly" ? "weekly" : "monthly";
+  localStorage.setItem("moneydesk_chart_view", chartView);
+  monthlyChartTab.classList.toggle("active", chartView === "monthly");
+  weeklyChartTab.classList.toggle("active", chartView === "weekly");
+  renderLineChart();
+}
+
 function setMode(nextMode) {
   mode = nextMode;
   const isLogin = mode === "login";
@@ -205,8 +214,7 @@ function render() {
 
   renderTable(items);
   renderChart(items);
-  renderWeeklyChart();
-  renderMonthlyChart();
+  renderLineChart();
 }
 
 function renderTable(items) {
@@ -262,70 +270,103 @@ function renderChart(items) {
     .join("");
 }
 
-function renderWeeklyChart() {
+function renderLineChart() {
+  const rows = chartView === "weekly" ? weeklyChartRows() : monthlyChartRows();
+  const itemCount = rows.reduce((sum, row) => sum + row.count, 0);
+
+  lineChartCaption.textContent =
+    chartView === "weekly"
+      ? `${monthLabel(monthFilter.value)} · ${itemCount} รายการ`
+      : `${rows[0].label} - ${rows[rows.length - 1].label} · ${itemCount} รายการ`;
+
+  monthlyChartTab.classList.toggle("active", chartView === "monthly");
+  weeklyChartTab.classList.toggle("active", chartView === "weekly");
+  renderSvgLineChart(rows);
+}
+
+function weeklyChartRows() {
   const monthItems = transactions.filter((item) => item.date.startsWith(monthFilter.value));
   const rows = Array.from({ length: 5 }, (_, index) => ({
     label: `สัปดาห์ ${index + 1}`,
     income: 0,
     expense: 0,
+    count: 0,
   }));
 
   monthItems.forEach((item) => {
     const row = rows[weekOfMonth(item.date) - 1];
     row[item.type] += item.amount;
+    row.count += 1;
   });
 
-  weeklyChartCaption.textContent = `${monthLabel(monthFilter.value)} · ${monthItems.length} รายการ`;
-  renderComparisonChart(weeklyChart, rows, "ยังไม่มีข้อมูลรายสัปดาห์ในเดือนนี้");
+  return rows;
 }
 
-function renderMonthlyChart() {
+function monthlyChartRows() {
   const months = Array.from({ length: 6 }, (_, index) => addMonths(monthFilter.value, index - 5));
-  const rows = months.map((monthKey) => {
-    const summary = summarize(transactions.filter((item) => item.date.startsWith(monthKey)));
+  return months.map((monthKey) => {
+    const items = transactions.filter((item) => item.date.startsWith(monthKey));
+    const summary = summarize(items);
     return {
       label: monthLabel(monthKey),
       income: summary.income,
       expense: summary.expense,
+      count: items.length,
     };
   });
-
-  monthlyChartCaption.textContent = `${monthLabel(months[0])} - ${monthLabel(months[months.length - 1])}`;
-  renderComparisonChart(monthlyChart, rows, "ยังไม่มีข้อมูลรายเดือนย้อนหลัง");
 }
 
-function renderComparisonChart(container, rows, emptyText) {
+function renderSvgLineChart(rows) {
+  const width = 900;
+  const height = 320;
+  const padding = { top: 28, right: 34, bottom: 58, left: 72 };
   const maxValue = Math.max(1, ...rows.flatMap((row) => [row.income, row.expense]));
   const hasData = rows.some((row) => row.income || row.expense);
+  const xStep = rows.length > 1 ? (width - padding.left - padding.right) / (rows.length - 1) : 0;
+  const usableHeight = height - padding.top - padding.bottom;
+  const yFor = (value) => padding.top + usableHeight - (value / maxValue) * usableHeight;
+  const xFor = (index) => padding.left + index * xStep;
+  const incomePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.income)}`).join(" ");
+  const expensePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.expense)}`).join(" ");
+  const gridValues = [1, 0.75, 0.5, 0.25, 0].map((ratio) => Math.round(maxValue * ratio));
 
-  if (!hasData) {
-    container.innerHTML = `<p class="empty-state">${emptyText}</p>`;
-    return;
-  }
-
-  container.innerHTML = `
+  financeLineChart.innerHTML = `
     <div class="chart-legend" aria-hidden="true">
       <span><i class="legend-income"></i>รายรับ</span>
       <span><i class="legend-expense"></i>รายจ่าย</span>
     </div>
-    <div class="compare-bars">
-      ${rows
-        .map((row) => {
-          const incomeHeight = Math.max(6, Math.round((row.income / maxValue) * 100));
-          const expenseHeight = Math.max(6, Math.round((row.expense / maxValue) * 100));
-          return `
-            <div class="compare-group">
-              <div class="compare-columns">
-                <span class="compare-bar income-bar" style="height: ${incomeHeight}%" title="รายรับ ${money(row.income)}"></span>
-                <span class="compare-bar expense-bar" style="height: ${expenseHeight}%" title="รายจ่าย ${money(row.expense)}"></span>
-              </div>
-              <strong>${escapeHtml(row.label)}</strong>
-              <small>${money(row.income - row.expense)}</small>
-            </div>
-          `;
-        })
-        .join("")}
-    </div>
+    ${
+      hasData
+        ? `
+          <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="กราฟเส้นรายรับรายจ่าย">
+            ${gridValues
+              .map((value) => {
+                const y = yFor(value);
+                return `
+                  <line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>
+                  <text class="axis-label y-label" x="${padding.left - 14}" y="${y + 4}" text-anchor="end">${money(value)}</text>
+                `;
+              })
+              .join("")}
+            <polyline class="line income-line" points="${incomePoints}"></polyline>
+            <polyline class="line expense-line" points="${expensePoints}"></polyline>
+            ${rows
+              .map((row, index) => {
+                const x = xFor(index);
+                return `
+                  <g>
+                    <circle class="dot income-dot" cx="${x}" cy="${yFor(row.income)}" r="5"></circle>
+                    <circle class="dot expense-dot" cx="${x}" cy="${yFor(row.expense)}" r="5"></circle>
+                    <text class="axis-label x-label" x="${x}" y="${height - 24}" text-anchor="middle">${escapeHtml(row.label)}</text>
+                    <text class="axis-label count-label" x="${x}" y="${height - 7}" text-anchor="middle">${row.count} รายการ</text>
+                  </g>
+                `;
+              })
+              .join("")}
+          </svg>
+        `
+        : `<p class="empty-state">ยังไม่มีข้อมูลสำหรับกราฟนี้</p>`
+    }
   `;
 }
 
@@ -401,6 +442,8 @@ logoutButton.addEventListener("click", () => {
 monthFilter.addEventListener("change", render);
 seedButton.addEventListener("click", seedDemoData);
 themeToggle.addEventListener("click", () => applyTheme(theme === "dark" ? "light" : "dark"));
+monthlyChartTab.addEventListener("click", () => setChartView("monthly"));
+weeklyChartTab.addEventListener("click", () => setChartView("weekly"));
 
 transactionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
