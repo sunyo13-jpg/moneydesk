@@ -318,8 +318,8 @@ function monthlyChartRows() {
 
 function renderSvgLineChart(rows) {
   const width = 900;
-  const height = 320;
-  const padding = { top: 28, right: 34, bottom: 58, left: 72 };
+  const height = 350;
+  const padding = { top: 64, right: 38, bottom: 62, left: 28 };
   const maxValue = Math.max(1, ...rows.flatMap((row) => [row.income, row.expense]));
   const hasData = rows.some((row) => row.income || row.expense);
   const xStep = rows.length > 1 ? (width - padding.left - padding.right) / (rows.length - 1) : 0;
@@ -328,7 +328,8 @@ function renderSvgLineChart(rows) {
   const xFor = (index) => padding.left + index * xStep;
   const incomePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.income)}`).join(" ");
   const expensePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.expense)}`).join(" ");
-  const gridValues = [1, 0.75, 0.5, 0.25, 0].map((ratio) => Math.round(maxValue * ratio));
+  const gridRatios = [1, 0.75, 0.5, 0.25, 0];
+  const labelForPoint = (value, kind) => (value > 0 ? `<text class="point-label ${kind}-label" y="-14" text-anchor="middle">${money(value)}</text>` : "");
 
   financeLineChart.innerHTML = `
     <div class="chart-legend" aria-hidden="true">
@@ -339,12 +340,11 @@ function renderSvgLineChart(rows) {
       hasData
         ? `
           <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="กราฟเส้นรายรับรายจ่าย">
-            ${gridValues
-              .map((value) => {
-                const y = yFor(value);
+            ${gridRatios
+              .map((ratio) => {
+                const y = padding.top + usableHeight - ratio * usableHeight;
                 return `
                   <line class="grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>
-                  <text class="axis-label y-label" x="${padding.left - 14}" y="${y + 4}" text-anchor="end">${money(value)}</text>
                 `;
               })
               .join("")}
@@ -355,8 +355,14 @@ function renderSvgLineChart(rows) {
                 const x = xFor(index);
                 return `
                   <g>
-                    <circle class="dot income-dot" cx="${x}" cy="${yFor(row.income)}" r="5"></circle>
-                    <circle class="dot expense-dot" cx="${x}" cy="${yFor(row.expense)}" r="5"></circle>
+                    <g transform="translate(${x} ${yFor(row.income)})">
+                      <circle class="dot income-dot" r="5"></circle>
+                      ${labelForPoint(row.income, "income")}
+                    </g>
+                    <g transform="translate(${x} ${yFor(row.expense)})">
+                      <circle class="dot expense-dot" r="5"></circle>
+                      ${labelForPoint(row.expense, "expense")}
+                    </g>
                     <text class="axis-label x-label" x="${x}" y="${height - 24}" text-anchor="middle">${escapeHtml(row.label)}</text>
                     <text class="axis-label count-label" x="${x}" y="${height - 7}" text-anchor="middle">${row.count} รายการ</text>
                   </g>
