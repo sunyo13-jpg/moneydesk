@@ -602,31 +602,15 @@ select:focus {
   stroke-width: 1;
 }
 
-.line {
-  fill: none;
-  stroke-width: 5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.chart-bar {
+  filter: drop-shadow(0 10px 14px rgba(23, 32, 42, 0.12));
 }
 
-.income-line {
-  stroke: var(--mint);
-}
-
-.expense-line {
-  stroke: var(--rose);
-}
-
-.dot {
-  stroke: var(--active-bg);
-  stroke-width: 3;
-}
-
-.income-dot {
+.income-bar {
   fill: var(--mint);
 }
 
-.expense-dot {
+.expense-bar {
   fill: var(--rose);
 }
 
@@ -636,13 +620,35 @@ select:focus {
   font-weight: 800;
 }
 
-.y-label {
-  font-size: 12px;
-}
-
 .count-label {
   color: var(--muted);
   font-size: 11px;
+}
+
+.point-label,
+.bar-value-label {
+  paint-order: stroke;
+  stroke: var(--active-bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.income-label {
+  fill: #159a72;
+}
+
+.expense-label {
+  fill: #c33d56;
+}
+
+:root[data-theme="dark"] .income-label {
+  fill: #76e4c5;
+}
+
+:root[data-theme="dark"] .expense-label {
+  fill: #ff9aa9;
 }
 
 .bar-row {

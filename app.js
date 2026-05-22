@@ -281,7 +281,7 @@ function renderLineChart() {
 
   monthlyChartTab.classList.toggle("active", chartView === "monthly");
   weeklyChartTab.classList.toggle("active", chartView === "weekly");
-  renderSvgLineChart(rows);
+  renderSvgBarChart(rows);
 }
 
 function weeklyChartRows() {
@@ -316,7 +316,7 @@ function monthlyChartRows() {
   });
 }
 
-function renderSvgLineChart(rows) {
+function renderSvgBarChart(rows) {
   const width = 900;
   const height = 350;
   const padding = { top: 64, right: 38, bottom: 62, left: 28 };
@@ -326,10 +326,12 @@ function renderSvgLineChart(rows) {
   const usableHeight = height - padding.top - padding.bottom;
   const yFor = (value) => padding.top + usableHeight - (value / maxValue) * usableHeight;
   const xFor = (index) => padding.left + index * xStep;
-  const incomePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.income)}`).join(" ");
-  const expensePoints = rows.map((row, index) => `${xFor(index)},${yFor(row.expense)}`).join(" ");
   const gridRatios = [1, 0.75, 0.5, 0.25, 0];
-  const labelForPoint = (value, kind) => (value > 0 ? `<text class="point-label ${kind}-label" y="-14" text-anchor="middle">${money(value)}</text>` : "");
+  const barWidth = rows.length > 5 ? 32 : 42;
+  const barGap = 10;
+  const baseline = padding.top + usableHeight;
+  const valueLabel = (value, x, y, kind) =>
+    value > 0 ? `<text class="bar-value-label ${kind}-label" x="${x}" y="${Math.max(22, y - 12)}" text-anchor="middle">${money(value)}</text>` : "";
 
   financeLineChart.innerHTML = `
     <div class="chart-legend" aria-hidden="true">
@@ -339,7 +341,7 @@ function renderSvgLineChart(rows) {
     ${
       hasData
         ? `
-          <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="กราฟเส้นรายรับรายจ่าย">
+          <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="กราฟแท่งรายรับรายจ่าย">
             ${gridRatios
               .map((ratio) => {
                 const y = padding.top + usableHeight - ratio * usableHeight;
@@ -348,21 +350,13 @@ function renderSvgLineChart(rows) {
                 `;
               })
               .join("")}
-            <polyline class="line income-line" points="${incomePoints}"></polyline>
-            <polyline class="line expense-line" points="${expensePoints}"></polyline>
             ${rows
               .map((row, index) => {
                 const x = xFor(index);
                 return `
                   <g>
-                    <g transform="translate(${x} ${yFor(row.income)})">
-                      <circle class="dot income-dot" r="5"></circle>
-                      ${labelForPoint(row.income, "income")}
-                    </g>
-                    <g transform="translate(${x} ${yFor(row.expense)})">
-                      <circle class="dot expense-dot" r="5"></circle>
-                      ${labelForPoint(row.expense, "expense")}
-                    </g>
+                    ${renderBar(row.income, x - barWidth - barGap / 2, "income")}
+                    ${renderBar(row.expense, x + barGap / 2, "expense")}
                     <text class="axis-label x-label" x="${x}" y="${height - 24}" text-anchor="middle">${escapeHtml(row.label)}</text>
                     <text class="axis-label count-label" x="${x}" y="${height - 7}" text-anchor="middle">${row.count} รายการ</text>
                   </g>
@@ -374,6 +368,18 @@ function renderSvgLineChart(rows) {
         : `<p class="empty-state">ยังไม่มีข้อมูลสำหรับกราฟนี้</p>`
     }
   `;
+
+  function renderBar(value, x, kind) {
+    const y = yFor(value);
+    const barHeight = Math.max(0, baseline - y);
+    const visibleHeight = value > 0 ? Math.max(8, barHeight) : 0;
+    const barY = baseline - visibleHeight;
+    const centerX = x + barWidth / 2;
+    return `
+      <rect class="chart-bar ${kind}-bar" x="${x}" y="${barY}" width="${barWidth}" height="${visibleHeight}" rx="12"></rect>
+      ${valueLabel(value, centerX, barY, kind)}
+    `;
+  }
 }
 
 function createTransaction(formData) {
