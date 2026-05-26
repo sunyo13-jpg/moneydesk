@@ -304,31 +304,44 @@ function renderChart(items) {
     return;
   }
 
-  const max = Math.max(...rows.map(([, value]) => value));
   const total = rows.reduce((sum, [, value]) => sum + value, 0);
   const palette = ["#20b486", "#2d7ff9", "#f05c7a", "#f6aa3d", "#8b5cf6", "#14b8a6"];
   chartCaption.textContent = `ใช้จ่ายรวม ${money(total)} · ${rows.length} หมวดหมู่`;
-  categoryChart.innerHTML = rows
-    .map(([category, value], index) => {
-      const width = Math.max(8, Math.round((value / max) * 100));
-      const percent = Math.round((value / total) * 100);
-      const color = palette[index % palette.length];
-      return `
-        <div class="category-card" style="--category-color: ${color}">
-          <div class="category-rank">${index + 1}</div>
-          <div class="category-main">
-            <div class="category-head">
-              <strong>${escapeHtml(category)}</strong>
-              <span>${percent}%</span>
-            </div>
-            <div class="category-track"><span style="width: ${width}%"></span></div>
-            <small>จากรายจ่ายเดือนนี้</small>
-          </div>
-          <strong class="category-amount">${money(value)}</strong>
+  let start = 0;
+  const segments = rows.map(([category, value], index) => {
+    const percentExact = (value / total) * 100;
+    const end = start + percentExact;
+    const color = palette[index % palette.length];
+    const segment = `${color} ${start}% ${end}%`;
+    start = end;
+    return { category, value, color, percent: Math.round(percentExact), segment };
+  });
+
+  categoryChart.innerHTML = `
+    <div class="pie-card">
+      <div class="donut-chart" style="--segments: ${segments.map((item) => item.segment).join(", ")}">
+        <div>
+          <small>รวม</small>
+          <strong>${money(total)}</strong>
         </div>
-      `;
-    })
-    .join("");
+      </div>
+    </div>
+    <div class="pie-legend">
+      ${segments
+        .map((item, index) => {
+          return `
+            <div class="legend-row" style="--category-color: ${item.color}">
+              <span class="legend-rank">${index + 1}</span>
+              <div>
+                <strong>${escapeHtml(item.category)} <em>${item.percent}%</em></strong>
+                <small>${money(item.value)}</small>
+              </div>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
 }
 
 function renderLineChart() {

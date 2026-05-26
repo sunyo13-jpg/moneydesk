@@ -83,13 +83,20 @@
             <a class="active" href="#dashboard">Dashboard</a>
             <a href="#transactions">ประวัติ</a>
             <a href="#add">เพิ่มข้อมูล</a>
+            <a href="#advice">คำแนะนำ</a>
           </nav>
           <div class="user-pill">
             <div>
               <small>ผู้ใช้</small>
               <strong id="currentUser">-</strong>
             </div>
-            <button class="icon-button" id="logoutButton" title="ออกจากระบบ" aria-label="ออกจากระบบ">↗</button>
+            <button class="icon-button logout-button" id="logoutButton" title="ออกจากระบบ" aria-label="ออกจากระบบ">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 6H6.8A2.8 2.8 0 0 0 4 8.8v6.4A2.8 2.8 0 0 0 6.8 18H10" />
+                <path d="M14 8l4 4-4 4" />
+                <path d="M8 12h10" />
+              </svg>
+            </button>
           </div>
         </aside>
 
@@ -196,6 +203,60 @@
               </div>
               <div class="chart-area" id="categoryChart" aria-label="กราฟรายจ่ายตามหมวดหมู่"></div>
             </section>
+          </section>
+
+          <section class="advice-panel glass" id="advice">
+            <div class="section-title">
+              <div>
+                <h3>คำแนะนำการเก็บออมและภาระหนี้</h3>
+                <span>คำนวณจากแนวทางที่นักวางแผนการเงินและผู้ให้กู้มักใช้เป็นกรอบประเมิน</span>
+              </div>
+            </div>
+
+            <div class="advice-grid">
+              <form class="advice-form" id="adviceForm">
+                <label>
+                  รายได้ต่อเดือน
+                  <input id="adviceIncome" type="number" min="0" step="1" placeholder="เช่น 30000" />
+                </label>
+                <label>
+                  ค่าผ่อนบ้าน/ค่าเช่าต่อเดือน
+                  <input id="adviceHousing" type="number" min="0" step="1" placeholder="เช่น 8000" />
+                </label>
+                <label>
+                  หนี้ผ่อนอื่นๆ ต่อเดือน
+                  <input id="adviceDebt" type="number" min="0" step="1" placeholder="บัตรเครดิต รถ สินเชื่อ" />
+                </label>
+                <label>
+                  รายจ่ายจำเป็นต่อเดือน
+                  <input id="adviceExpense" type="number" min="0" step="1" placeholder="อาหาร เดินทาง สาธารณูปโภค" />
+                </label>
+                <button class="primary-button" type="submit">ประเมินแผนการเงิน</button>
+              </form>
+
+              <div class="advice-results" id="adviceResults">
+                <article class="advice-card">
+                  <span>เงินออมแนะนำ</span>
+                  <strong id="savingTarget">฿0</strong>
+                  <small>ประมาณ 10-20% ของรายได้</small>
+                </article>
+                <article class="advice-card">
+                  <span>ภาระหนี้รวม</span>
+                  <strong id="debtRatio">0%</strong>
+                  <small id="debtStatus">กรอกข้อมูลเพื่อประเมิน</small>
+                </article>
+                <article class="advice-card">
+                  <span>เงินสำรองฉุกเฉิน</span>
+                  <strong id="emergencyTarget">฿0</strong>
+                  <small>เป้าหมาย 3-6 เดือนของรายจ่ายจำเป็น</small>
+                </article>
+              </div>
+            </div>
+
+            <div class="advice-note" id="adviceNote">
+              <strong>หลักคิดเบื้องต้น</strong>
+              <p>พยายามให้ค่าที่อยู่อาศัยไม่เกิน 28% ของรายได้ และภาระหนี้รวมไม่เกิน 36%; หากเกิน 43% ควรระวังเป็นพิเศษ เพราะเริ่มเป็นภาระสูงมาก แนวทางนี้เป็นข้อมูลทั่วไป ไม่ใช่คำแนะนำการเงินส่วนบุคคล</p>
+            </div>
           </section>
 
           <section class="table-panel glass" id="transactions">
