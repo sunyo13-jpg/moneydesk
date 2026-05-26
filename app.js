@@ -8,14 +8,18 @@ const authSubmit = document.querySelector("#authSubmit");
 const authMessage = document.querySelector("#authMessage");
 const loginTab = document.querySelector("#loginTab");
 const registerTab = document.querySelector("#registerTab");
+const passwordTab = document.querySelector("#passwordTab");
 const usernameInput = document.querySelector("#username");
 const passwordInput = document.querySelector("#password");
+const newPasswordLabel = document.querySelector("#newPasswordLabel");
+const newPasswordInput = document.querySelector("#newPassword");
 const currentUserLabel = document.querySelector("#currentUser");
 const logoutButton = document.querySelector("#logoutButton");
 const monthFilter = document.querySelector("#monthFilter");
-const seedButton = document.querySelector("#seedButton");
 const themeToggle = document.querySelector("#themeToggle");
 const transactionForm = document.querySelector("#transactionForm");
+const transactionSubmit = document.querySelector("#transactionSubmit");
+const cancelEditButton = document.querySelector("#cancelEditButton");
 const titleInput = document.querySelector("#titleInput");
 const amountInput = document.querySelector("#amountInput");
 const dateInput = document.querySelector("#dateInput");
@@ -33,12 +37,15 @@ const weeklyChartTab = document.querySelector("#weeklyChartTab");
 const transactionTable = document.querySelector("#transactionTable");
 const transactionCount = document.querySelector("#transactionCount");
 const emptyState = document.querySelector("#emptyState");
+const onlineCount = document.querySelector("#onlineCount");
 
 let mode = "login";
 let activeUser = "";
 let transactions = [];
 let theme = localStorage.getItem("moneydesk_theme") || "light";
 let chartView = localStorage.getItem("moneydesk_chart_view") || "monthly";
+let editingId = "";
+let presenceTimer = null;
 
 const today = new Date();
 const yyyy = today.getFullYear();
@@ -158,11 +165,17 @@ function setChartView(nextView) {
 function setMode(nextMode) {
   mode = nextMode;
   const isLogin = mode === "login";
-  authTitle.textContent = isLogin ? "เข้าสู่ระบบ" : "สมัครใช้งาน";
-  authSubmit.textContent = isLogin ? "เข้าสู่ระบบ" : "สร้างบัญชี";
+  const isRegister = mode === "register";
+  const isPassword = mode === "password";
+  authTitle.textContent = isLogin ? "เข้าสู่ระบบ" : isRegister ? "สมัครใช้งาน" : "แก้ไขรหัสผ่าน";
+  authSubmit.textContent = isLogin ? "เข้าสู่ระบบ" : isRegister ? "สร้างบัญชี" : "บันทึกรหัสผ่านใหม่";
   loginTab.classList.toggle("active", isLogin);
-  registerTab.classList.toggle("active", !isLogin);
-  passwordInput.autocomplete = isLogin ? "current-password" : "new-password";
+  registerTab.classList.toggle("active", isRegister);
+  passwordTab.classList.toggle("active", isPassword);
+  newPasswordLabel.classList.toggle("hidden", !isPassword);
+  newPasswordInput.required = isPassword;
+  passwordInput.autocomplete = isLogin || isPassword ? "current-password" : "new-password";
+  passwordInput.placeholder = isPassword ? "รหัสผ่านเดิม" : "อย่างน้อย 4 ตัวอักษร";
   authMessage.textContent = "";
 }
 
@@ -172,16 +185,40 @@ async function showApp(username) {
   appView.classList.remove("hidden");
   currentUserLabel.textContent = activeUser;
   await refreshTransactions();
+  startPresence();
 }
 
 function showAuth() {
   activeUser = "";
   transactions = [];
+  stopPresence();
   appView.classList.add("hidden");
   authView.classList.remove("hidden");
   authForm.reset();
   authMessage.textContent = "";
   setMode("login");
+}
+
+async function updatePresence() {
+  if (!getToken()) return;
+  try {
+    const data = await api("/api/presence", { method: "POST" });
+    onlineCount.textContent = data.online ?? 0;
+  } catch {
+    onlineCount.textContent = "0";
+  }
+}
+
+function startPresence() {
+  stopPresence();
+  updatePresence();
+  presenceTimer = setInterval(updatePresence, 30000);
+}
+
+function stopPresence() {
+  if (presenceTimer) clearInterval(presenceTimer);
+  presenceTimer = null;
+  if (onlineCount) onlineCount.textContent = "0";
 }
 
 async function refreshTransactions() {
@@ -210,7 +247,7 @@ function render() {
   expenseTotal.textContent = money(expense);
   balanceTotal.textContent = money(balance);
   balanceHint.textContent = balance >= 0 ? "กระแสเงินสดเป็นบวก" : "รายจ่ายสูงกว่ารายรับ";
-  transactionCount.textContent = `${items.length} รายการ`;
+  transactionCount.textContent = `${monthLabel(monthFilter.value)} · ${items.length} รายการ`;
 
   renderTable(items);
   renderChart(items);
@@ -229,7 +266,10 @@ function renderTable(items) {
           <td>${escapeHtml(item.category)}</td>
           <td><span class="badge ${item.type}">${typeText}</span></td>
           <td class="right">${sign}${money(item.amount)}</td>
-          <td class="right"><button class="delete-button" data-id="${item.id}" aria-label="ลบรายการ ${escapeHtml(item.title)}">x</button></td>
+          <td class="right table-actions">
+            <button class="edit-button" data-id="${item.id}" aria-label="แก้ไขรายการ ${escapeHtml(item.title)}">แก้ไข</button>
+            <button class="delete-button" data-id="${item.id}" aria-label="ลบรายการ ${escapeHtml(item.title)}">x</button>
+          </td>
         </tr>
       `;
     })
@@ -392,36 +432,30 @@ function createTransaction(formData) {
   };
 }
 
-async function seedDemoData() {
-  seedButton.disabled = true;
-  const month = monthFilter.value;
-  const samples = [
-    ["income", "เงินเดือน", 45000, `${month}-01`, "เงินเดือน"],
-    ["income", "งานออกแบบโลโก้", 7200, `${month}-08`, "งานเสริม"],
-    ["expense", "ค่าเช่าห้อง", 12000, `${month}-03`, "บ้าน"],
-    ["expense", "กาแฟและอาหารกลางวัน", 1850, `${month}-11`, "อาหาร"],
-    ["expense", "BTS และแท็กซี่", 1430, `${month}-14`, "เดินทาง"],
-    ["expense", "ซื้อคีย์บอร์ด", 3200, `${month}-18`, "ช้อปปิ้ง"],
-    ["expense", "วิตามิน", 890, `${month}-19`, "สุขภาพ"],
-  ];
+function startEdit(item) {
+  editingId = item.id;
+  document.querySelector(item.type === "income" ? "#typeIncome" : "#typeExpense").checked = true;
+  titleInput.value = item.title;
+  amountInput.value = item.amount;
+  dateInput.value = item.date;
+  categoryInput.value = item.category;
+  transactionSubmit.textContent = "บันทึกการแก้ไข";
+  cancelEditButton.classList.remove("hidden");
+  transactionForm.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 
-  try {
-    for (const [type, title, amount, date, category] of samples) {
-      await api("/api/transactions", {
-        method: "POST",
-        body: JSON.stringify({ type, title, amount, date, category }),
-      });
-    }
-    await refreshTransactions();
-  } catch (error) {
-    alert(error.message);
-  } finally {
-    seedButton.disabled = false;
-  }
+function stopEdit() {
+  editingId = "";
+  transactionForm.reset();
+  document.querySelector("#typeIncome").checked = true;
+  dateInput.value = `${yyyy}-${mm}-${dd}`;
+  transactionSubmit.textContent = "บันทึกรายการ";
+  cancelEditButton.classList.add("hidden");
 }
 
 loginTab.addEventListener("click", () => setMode("login"));
 registerTab.addEventListener("click", () => setMode("register"));
+passwordTab.addEventListener("click", () => setMode("password"));
 
 authForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -431,6 +465,21 @@ authForm.addEventListener("submit", async (event) => {
   try {
     const username = normalizeName(usernameInput.value);
     const password = passwordInput.value;
+    if (mode === "password") {
+      await api("/api/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          username,
+          currentPassword: password,
+          newPassword: newPasswordInput.value,
+        }),
+      });
+      authForm.reset();
+      setMode("login");
+      authMessage.textContent = "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว ลองเข้าสู่ระบบอีกครั้ง";
+      return;
+    }
+
     const path = mode === "register" ? "/api/register" : "/api/login";
     const data = await api(path, {
       method: "POST",
@@ -452,10 +501,10 @@ logoutButton.addEventListener("click", () => {
 });
 
 monthFilter.addEventListener("change", render);
-seedButton.addEventListener("click", seedDemoData);
 themeToggle.addEventListener("click", () => applyTheme(theme === "dark" ? "light" : "dark"));
 monthlyChartTab.addEventListener("click", () => setChartView("monthly"));
 weeklyChartTab.addEventListener("click", () => setChartView("weekly"));
+cancelEditButton.addEventListener("click", stopEdit);
 
 transactionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -463,13 +512,11 @@ transactionForm.addEventListener("submit", async (event) => {
   if (!transaction.title || transaction.amount <= 0 || !transaction.date) return;
 
   try {
-    await api("/api/transactions", {
-      method: "POST",
+    await api(editingId ? `/api/transactions/${editingId}` : "/api/transactions", {
+      method: editingId ? "PUT" : "POST",
       body: JSON.stringify(transaction),
     });
-    transactionForm.reset();
-    document.querySelector("#typeIncome").checked = true;
-    dateInput.value = `${yyyy}-${mm}-${dd}`;
+    stopEdit();
     await refreshTransactions();
   } catch (error) {
     alert(error.message);
@@ -477,6 +524,13 @@ transactionForm.addEventListener("submit", async (event) => {
 });
 
 transactionTable.addEventListener("click", async (event) => {
+  const editButton = event.target.closest(".edit-button");
+  if (editButton) {
+    const item = transactions.find((transaction) => transaction.id === editButton.dataset.id);
+    if (item) startEdit(item);
+    return;
+  }
+
   const button = event.target.closest(".delete-button");
   if (!button) return;
 

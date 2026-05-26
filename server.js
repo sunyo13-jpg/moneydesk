@@ -13,6 +13,8 @@ const USE_POSTGRES = Boolean(process.env.DATABASE_URL);
 const REQUIRE_DATABASE_URL = process.env.REQUIRE_DATABASE_URL === "true";
 
 let pool = null;
+const onlineUsers = new Map();
+const ONLINE_WINDOW_MS = 70 * 1000;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -121,6 +123,21 @@ async function createUser(username, passwordData) {
   await writeFileDb(db);
 }
 
+async function updateUserPassword(username, passwordData) {
+  if (USE_POSTGRES) {
+    await pool.query(
+      "update users set salt = $2, password_hash = $3 where username = $1",
+      [username, passwordData.salt, passwordData.hash],
+    );
+    return;
+  }
+
+  const db = await readFileDb();
+  db.users[username].salt = passwordData.salt;
+  db.users[username].passwordHash = passwordData.hash;
+  await writeFileDb(db);
+}
+
 async function listTransactions(username) {
   if (USE_POSTGRES) {
     const result = await pool.query(
@@ -170,6 +187,34 @@ async function addTransaction(username, transaction) {
   const db = await readFileDb();
   db.users[username].transactions = db.users[username].transactions || [];
   db.users[username].transactions.push(transaction);
+  await writeFileDb(db);
+}
+
+async function updateTransaction(username, id, transaction) {
+  if (USE_POSTGRES) {
+    await pool.query(
+      `
+        update transactions
+        set type = $3, title = $4, amount = $5, date = $6, category = $7
+        where username = $1 and id = $2
+      `,
+      [
+        username,
+        id,
+        transaction.type,
+        transaction.title,
+        transaction.amount,
+        transaction.date,
+        transaction.category,
+      ],
+    );
+    return;
+  }
+
+  const db = await readFileDb();
+  db.users[username].transactions = (db.users[username].transactions || []).map((item) =>
+    item.id === id ? { ...item, ...transaction } : item,
+  );
   await writeFileDb(db);
 }
 
@@ -246,6 +291,18 @@ function readToken(req) {
   }
 }
 
+function touchOnline(username) {
+  onlineUsers.set(username, Date.now());
+}
+
+function onlineCount() {
+  const now = Date.now();
+  for (const [username, lastSeen] of onlineUsers.entries()) {
+    if (now - lastSeen > ONLINE_WINDOW_MS) onlineUsers.delete(username);
+  }
+  return onlineUsers.size;
+}
+
 async function readBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -299,11 +356,28 @@ async function handleApi(req, res, url) {
       return sendJson(res, 200, { username, token: createToken(username) });
     }
 
+    if (req.method === "POST" && url.pathname === "/api/change-password") {
+      const body = await readBody(req);
+      const username = normalizeUsername(body.username);
+      const currentPassword = String(body.currentPassword || "");
+      const newPassword = String(body.newPassword || "");
+      const user = await getUser(username);
+
+      if (newPassword.length < 4) return sendJson(res, 400, { error: "รหัสผ่านใหม่อย่างน้อย 4 ตัวอักษร" });
+      if (!user || !verifyPassword(currentPassword, user)) {
+        return sendJson(res, 401, { error: "ชื่อผู้ใช้หรือรหัสผ่านเดิมไม่ถูกต้อง" });
+      }
+
+      await updateUserPassword(username, hashPassword(newPassword));
+      return sendJson(res, 200, { ok: true });
+    }
+
     const username = readToken(req);
     if (!username) return sendJson(res, 401, { error: "กรุณาเข้าสู่ระบบใหม่" });
 
     const user = await getUser(username);
     if (!user) return sendJson(res, 401, { error: "ไม่พบบัญชีผู้ใช้" });
+    touchOnline(username);
 
     if (req.method === "GET" && url.pathname === "/api/session") {
       return sendJson(res, 200, { username });
@@ -311,6 +385,14 @@ async function handleApi(req, res, url) {
 
     if (req.method === "GET" && url.pathname === "/api/transactions") {
       return sendJson(res, 200, { transactions: await listTransactions(username) });
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/presence") {
+      return sendJson(res, 200, { online: onlineCount() });
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/stats") {
+      return sendJson(res, 200, { online: onlineCount() });
     }
 
     if (req.method === "POST" && url.pathname === "/api/transactions") {
@@ -330,6 +412,22 @@ async function handleApi(req, res, url) {
 
       await addTransaction(username, transaction);
       return sendJson(res, 201, { transaction });
+    }
+
+    if (req.method === "PUT" && url.pathname.startsWith("/api/transactions/")) {
+      const id = decodeURIComponent(url.pathname.replace("/api/transactions/", ""));
+      const body = await readBody(req);
+      const error = validateTransaction(body);
+      if (error) return sendJson(res, 400, { error });
+
+      await updateTransaction(username, id, {
+        type: body.type,
+        title: String(body.title).trim(),
+        amount: Number(body.amount),
+        date: String(body.date),
+        category: String(body.category).trim(),
+      });
+      return sendJson(res, 200, { ok: true });
     }
 
     if (req.method === "DELETE" && url.pathname.startsWith("/api/transactions/")) {

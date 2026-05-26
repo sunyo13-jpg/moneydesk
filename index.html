@@ -49,6 +49,7 @@
           <div class="segmented" role="tablist" aria-label="เลือกโหมด">
             <button type="button" class="segment active" id="loginTab">เข้าสู่ระบบ</button>
             <button type="button" class="segment" id="registerTab">สมัครใช้งาน</button>
+            <button type="button" class="segment" id="passwordTab">แก้รหัสผ่าน</button>
           </div>
 
           <label>
@@ -58,6 +59,10 @@
           <label>
             รหัสผ่าน
             <input id="password" type="password" autocomplete="current-password" required minlength="4" placeholder="อย่างน้อย 4 ตัวอักษร" />
+          </label>
+          <label class="hidden" id="newPasswordLabel">
+            รหัสผ่านใหม่
+            <input id="newPassword" type="password" autocomplete="new-password" minlength="4" placeholder="รหัสผ่านใหม่อย่างน้อย 4 ตัวอักษร" />
           </label>
 
           <p class="message" id="authMessage" role="status"></p>
@@ -76,7 +81,7 @@
           </div>
           <nav class="nav-list" aria-label="เมนูหลัก">
             <a class="active" href="#dashboard">Dashboard</a>
-            <a href="#transactions">รายการ</a>
+            <a href="#transactions">ประวัติ</a>
             <a href="#add">เพิ่มข้อมูล</a>
           </nav>
           <div class="user-pill">
@@ -97,7 +102,11 @@
             <div class="toolbar">
               <input type="month" id="monthFilter" />
               <button class="theme-toggle" id="themeToggle" type="button" aria-label="เปลี่ยนธีม">โหมดมืด</button>
-              <button class="ghost-button" id="seedButton" type="button">เติมข้อมูลตัวอย่าง</button>
+              <div class="online-pill" aria-live="polite">
+                <span class="online-dot"></span>
+                <strong id="onlineCount">0</strong>
+                <small>ออนไลน์</small>
+              </div>
             </div>
           </header>
 
@@ -174,7 +183,10 @@
                   <option>อื่นๆ</option>
                 </select>
               </label>
-              <button class="primary-button" type="submit">บันทึกรายการ</button>
+              <div class="form-actions">
+                <button class="primary-button" type="submit" id="transactionSubmit">บันทึกรายการ</button>
+                <button class="ghost-button hidden" type="button" id="cancelEditButton">ยกเลิกแก้ไข</button>
+              </div>
             </form>
 
             <section class="analysis-panel glass">
@@ -188,7 +200,7 @@
 
           <section class="table-panel glass" id="transactions">
             <div class="section-title">
-              <h3>รายการล่าสุด</h3>
+              <h3>ประวัติการเพิ่ม</h3>
               <span id="transactionCount">0 รายการ</span>
             </div>
             <div class="table-wrap">
