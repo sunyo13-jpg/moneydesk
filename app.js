@@ -38,6 +38,16 @@ const transactionTable = document.querySelector("#transactionTable");
 const transactionCount = document.querySelector("#transactionCount");
 const emptyState = document.querySelector("#emptyState");
 const onlineCount = document.querySelector("#onlineCount");
+const adviceForm = document.querySelector("#adviceForm");
+const adviceIncome = document.querySelector("#adviceIncome");
+const adviceHousing = document.querySelector("#adviceHousing");
+const adviceDebt = document.querySelector("#adviceDebt");
+const adviceExpense = document.querySelector("#adviceExpense");
+const savingTarget = document.querySelector("#savingTarget");
+const debtRatio = document.querySelector("#debtRatio");
+const debtStatus = document.querySelector("#debtStatus");
+const emergencyTarget = document.querySelector("#emergencyTarget");
+const adviceNote = document.querySelector("#adviceNote");
 
 let mode = "login";
 let activeUser = "";
@@ -295,15 +305,26 @@ function renderChart(items) {
   }
 
   const max = Math.max(...rows.map(([, value]) => value));
-  chartCaption.textContent = `แสดง ${rows.length} หมวดหมู่สูงสุด`;
+  const total = rows.reduce((sum, [, value]) => sum + value, 0);
+  const palette = ["#20b486", "#2d7ff9", "#f05c7a", "#f6aa3d", "#8b5cf6", "#14b8a6"];
+  chartCaption.textContent = `ใช้จ่ายรวม ${money(total)} · ${rows.length} หมวดหมู่`;
   categoryChart.innerHTML = rows
-    .map(([category, value]) => {
+    .map(([category, value], index) => {
       const width = Math.max(8, Math.round((value / max) * 100));
+      const percent = Math.round((value / total) * 100);
+      const color = palette[index % palette.length];
       return `
-        <div class="bar-row">
-          <span class="bar-label">${escapeHtml(category)}</span>
-          <span class="bar-track"><span class="bar-fill" style="width: ${width}%"></span></span>
-          <span class="bar-value right">${money(value)}</span>
+        <div class="category-card" style="--category-color: ${color}">
+          <div class="category-rank">${index + 1}</div>
+          <div class="category-main">
+            <div class="category-head">
+              <strong>${escapeHtml(category)}</strong>
+              <span>${percent}%</span>
+            </div>
+            <div class="category-track"><span style="width: ${width}%"></span></div>
+            <small>จากรายจ่ายเดือนนี้</small>
+          </div>
+          <strong class="category-amount">${money(value)}</strong>
         </div>
       `;
     })
@@ -432,6 +453,46 @@ function createTransaction(formData) {
   };
 }
 
+function calculateAdvice() {
+  const income = Number(adviceIncome.value) || 0;
+  const housing = Number(adviceHousing.value) || 0;
+  const debt = Number(adviceDebt.value) || 0;
+  const essentialExpense = Number(adviceExpense.value) || 0;
+  const totalDebt = housing + debt;
+  const dti = income > 0 ? (totalDebt / income) * 100 : 0;
+  const housingRatio = income > 0 ? (housing / income) * 100 : 0;
+  const savingLow = income * 0.1;
+  const savingHigh = income * 0.2;
+  const emergencyLow = essentialExpense * 3;
+  const emergencyHigh = essentialExpense * 6;
+
+  savingTarget.textContent = income ? `${money(savingLow)} - ${money(savingHigh)}` : money(0);
+  debtRatio.textContent = `${Math.round(dti)}%`;
+  emergencyTarget.textContent = essentialExpense ? `${money(emergencyLow)} - ${money(emergencyHigh)}` : money(0);
+
+  let status = "กรอกข้อมูลเพื่อประเมิน";
+  let tone = "neutral";
+  if (income > 0) {
+    if (dti <= 36 && housingRatio <= 28) {
+      status = "อยู่ในกรอบปลอดภัยตามแนวทาง 28/36";
+      tone = "good";
+    } else if (dti <= 43) {
+      status = "เริ่มตึง ควรระวังการก่อหนี้เพิ่ม";
+      tone = "warn";
+    } else {
+      status = "ภาระหนี้สูง เสี่ยงกระทบกระแสเงินสด";
+      tone = "danger";
+    }
+  }
+
+  debtStatus.textContent = status;
+  adviceNote.dataset.tone = tone;
+  adviceNote.innerHTML = `
+    <strong>ผลประเมินเบื้องต้น</strong>
+    <p>ค่าที่อยู่อาศัยของคุณอยู่ที่ ${Math.round(housingRatio)}% ของรายได้ และภาระหนี้รวมอยู่ที่ ${Math.round(dti)}% ของรายได้ เป้าหมายที่ใช้เป็นแนวทางคือที่อยู่อาศัยไม่เกิน 28%, หนี้รวมไม่เกิน 36%, และควรระวังมากเมื่อเกิน 43% พร้อมกันนี้ควรค่อยๆ สร้างเงินสำรองฉุกเฉิน 3-6 เดือนของรายจ่ายจำเป็น</p>
+  `;
+}
+
 function startEdit(item) {
   editingId = item.id;
   document.querySelector(item.type === "income" ? "#typeIncome" : "#typeExpense").checked = true;
@@ -505,6 +566,10 @@ themeToggle.addEventListener("click", () => applyTheme(theme === "dark" ? "light
 monthlyChartTab.addEventListener("click", () => setChartView("monthly"));
 weeklyChartTab.addEventListener("click", () => setChartView("weekly"));
 cancelEditButton.addEventListener("click", stopEdit);
+adviceForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  calculateAdvice();
+});
 
 transactionForm.addEventListener("submit", async (event) => {
   event.preventDefault();
