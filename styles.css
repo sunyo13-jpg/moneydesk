@@ -492,6 +492,16 @@ select:focus {
   padding-right: 44px;
 }
 
+#monthFilter::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+:root[data-theme="dark"] #monthFilter::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.65);
+  opacity: 1;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
