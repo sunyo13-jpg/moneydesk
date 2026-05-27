@@ -484,7 +484,12 @@ select:focus {
 }
 
 .toolbar input {
-  max-width: 180px;
+  max-width: 230px;
+}
+
+#monthFilter {
+  min-width: 210px;
+  padding-right: 44px;
 }
 
 .summary-grid {
@@ -1054,6 +1059,10 @@ td {
 
   .toolbar input {
     max-width: none;
+  }
+
+  #monthFilter {
+    min-width: 100%;
   }
 
   .chart-area {

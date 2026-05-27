@@ -396,13 +396,13 @@ function renderSvgBarChart(rows) {
   const padding = { top: 64, right: 38, bottom: 62, left: 28 };
   const maxValue = Math.max(1, ...rows.flatMap((row) => [row.income, row.expense]));
   const hasData = rows.some((row) => row.income || row.expense);
-  const xStep = rows.length > 1 ? (width - padding.left - padding.right) / (rows.length - 1) : 0;
+  const groupWidth = (width - padding.left - padding.right) / rows.length;
   const usableHeight = height - padding.top - padding.bottom;
   const yFor = (value) => padding.top + usableHeight - (value / maxValue) * usableHeight;
-  const xFor = (index) => padding.left + index * xStep;
+  const xFor = (index) => padding.left + groupWidth * (index + 0.5);
   const gridRatios = [1, 0.75, 0.5, 0.25, 0];
-  const barWidth = rows.length > 5 ? 32 : 42;
-  const barGap = 10;
+  const barWidth = Math.min(42, Math.max(24, groupWidth * 0.24));
+  const barGap = Math.min(14, Math.max(8, groupWidth * 0.08));
   const baseline = padding.top + usableHeight;
   const valueLabel = (value, x, y, kind) =>
     value > 0 ? `<text class="bar-value-label ${kind}-label" x="${x}" y="${Math.max(22, y - 12)}" text-anchor="middle">${money(value)}</text>` : "";
