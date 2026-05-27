@@ -48,6 +48,18 @@ const debtRatio = document.querySelector("#debtRatio");
 const debtStatus = document.querySelector("#debtStatus");
 const emergencyTarget = document.querySelector("#emergencyTarget");
 const adviceNote = document.querySelector("#adviceNote");
+const taxForm = document.querySelector("#taxForm");
+const taxMonthlyIncome = document.querySelector("#taxMonthlyIncome");
+const taxOtherIncome = document.querySelector("#taxOtherIncome");
+const taxSocialSecurity = document.querySelector("#taxSocialSecurity");
+const taxOtherDeduction = document.querySelector("#taxOtherDeduction");
+const taxWithheld = document.querySelector("#taxWithheld");
+const taxableIncome = document.querySelector("#taxableIncome");
+const estimatedTax = document.querySelector("#estimatedTax");
+const effectiveTaxRate = document.querySelector("#effectiveTaxRate");
+const taxBalance = document.querySelector("#taxBalance");
+const taxBalanceHint = document.querySelector("#taxBalanceHint");
+const taxBreakdown = document.querySelector("#taxBreakdown");
 
 let mode = "login";
 let activeUser = "";
@@ -506,6 +518,82 @@ function calculateAdvice() {
   `;
 }
 
+const TAX_BRACKETS = [
+  { min: 0, max: 150000, rate: 0 },
+  { min: 150000, max: 300000, rate: 0.05 },
+  { min: 300000, max: 500000, rate: 0.1 },
+  { min: 500000, max: 750000, rate: 0.15 },
+  { min: 750000, max: 1000000, rate: 0.2 },
+  { min: 1000000, max: 2000000, rate: 0.25 },
+  { min: 2000000, max: 5000000, rate: 0.3 },
+  { min: 5000000, max: Infinity, rate: 0.35 },
+];
+
+function calculateProgressiveTax(netIncome) {
+  let tax = 0;
+  const rows = [];
+
+  TAX_BRACKETS.forEach((bracket) => {
+    const taxableInBracket = Math.max(0, Math.min(netIncome, bracket.max) - bracket.min);
+    const bracketTax = taxableInBracket * bracket.rate;
+    if (taxableInBracket > 0 || bracket.min === 0) {
+      rows.push({
+        range: bracket.max === Infinity ? `${money(bracket.min + 1)} ขึ้นไป` : `${money(bracket.min + 1)} - ${money(bracket.max)}`,
+        rate: bracket.rate,
+        amount: taxableInBracket,
+        tax: bracketTax,
+      });
+    }
+    tax += bracketTax;
+  });
+
+  return { tax, rows };
+}
+
+function calculateTax() {
+  const annualSalary = (Number(taxMonthlyIncome.value) || 0) * 12;
+  const otherIncome = Number(taxOtherIncome.value) || 0;
+  const grossIncome = annualSalary + otherIncome;
+  const expenseDeduction = Math.min(grossIncome * 0.5, 100000);
+  const personalAllowance = 60000;
+  const socialSecurity = Math.min(Number(taxSocialSecurity.value) || 0, 9000);
+  const otherDeduction = Number(taxOtherDeduction.value) || 0;
+  const withheld = Number(taxWithheld.value) || 0;
+  const netIncome = Math.max(0, grossIncome - expenseDeduction - personalAllowance - socialSecurity - otherDeduction);
+  const result = calculateProgressiveTax(netIncome);
+  const balance = result.tax - withheld;
+  const averageRate = grossIncome > 0 ? (result.tax / grossIncome) * 100 : 0;
+
+  taxableIncome.textContent = money(netIncome);
+  estimatedTax.textContent = money(result.tax);
+  effectiveTaxRate.textContent = `อัตราเฉลี่ย ${averageRate.toFixed(2)}%`;
+  taxBalance.textContent = money(Math.abs(balance));
+  taxBalanceHint.textContent = balance > 0 ? "ควรเตรียมจ่ายเพิ่ม" : balance < 0 ? "อาจมีสิทธิขอคืน" : "พอดีกับภาษีที่ถูกหักไว้";
+
+  taxBreakdown.innerHTML = `
+    <strong>รายละเอียดการคำนวณ</strong>
+    <div class="tax-summary-line">
+      <span>เงินได้ทั้งปี</span><b>${money(grossIncome)}</b>
+      <span>หักค่าใช้จ่าย 50% สูงสุด 100,000</span><b>${money(expenseDeduction)}</b>
+      <span>ค่าลดหย่อนส่วนตัว</span><b>${money(personalAllowance)}</b>
+      <span>ประกันสังคมที่นำมาคิด</span><b>${money(socialSecurity)}</b>
+      <span>ลดหย่อนอื่นๆ</span><b>${money(otherDeduction)}</b>
+    </div>
+    <div class="tax-bracket-list">
+      ${result.rows
+        .filter((row) => row.amount > 0)
+        .map((row) => `
+          <div>
+            <span>${row.range}</span>
+            <small>${Math.round(row.rate * 100)}%</small>
+            <strong>${money(row.tax)}</strong>
+          </div>
+        `)
+        .join("") || `<p class="empty-state">ยังไม่มีภาษีในขั้นบันได เพราะเงินได้สุทธิไม่เกินช่วงยกเว้น</p>`}
+    </div>
+  `;
+}
+
 function startEdit(item) {
   editingId = item.id;
   document.querySelector(item.type === "income" ? "#typeIncome" : "#typeExpense").checked = true;
@@ -582,6 +670,10 @@ cancelEditButton.addEventListener("click", stopEdit);
 adviceForm.addEventListener("submit", (event) => {
   event.preventDefault();
   calculateAdvice();
+});
+taxForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  calculateTax();
 });
 
 transactionForm.addEventListener("submit", async (event) => {

@@ -258,6 +258,61 @@
               <strong>หลักคิดเบื้องต้น</strong>
               <p>พยายามให้ค่าที่อยู่อาศัยไม่เกิน 28% ของรายได้ และภาระหนี้รวมไม่เกิน 36%; หากเกิน 43% ควรระวังเป็นพิเศษ เพราะเริ่มเป็นภาระสูงมาก แนวทางนี้เป็นข้อมูลทั่วไป ไม่ใช่คำแนะนำการเงินส่วนบุคคล</p>
             </div>
+
+            <div class="tax-panel">
+              <div class="section-title">
+                <div>
+                  <h3>คำนวณภาษีเงินได้</h3>
+                  <span>ประเมินภาษีบุคคลธรรมดาเบื้องต้นด้วยอัตราขั้นบันได</span>
+                </div>
+              </div>
+
+              <div class="tax-grid">
+                <form class="tax-form" id="taxForm">
+                  <label>
+                    เงินเดือนต่อเดือน
+                    <input id="taxMonthlyIncome" type="number" min="0" step="1" placeholder="เช่น 30000" />
+                  </label>
+                  <label>
+                    โบนัส/รายได้อื่นทั้งปี
+                    <input id="taxOtherIncome" type="number" min="0" step="1" placeholder="ถ้าไม่มีใส่ 0" />
+                  </label>
+                  <label>
+                    ประกันสังคมทั้งปี
+                    <input id="taxSocialSecurity" type="number" min="0" step="1" placeholder="สูงสุดประมาณ 9000" />
+                  </label>
+                  <label>
+                    ลดหย่อนอื่นๆ
+                    <input id="taxOtherDeduction" type="number" min="0" step="1" placeholder="เช่น ประกัน RMF กองทุน ฯลฯ" />
+                  </label>
+                  <label>
+                    ภาษีหัก ณ ที่จ่ายแล้ว
+                    <input id="taxWithheld" type="number" min="0" step="1" placeholder="ถ้าไม่มีใส่ 0" />
+                  </label>
+                  <button class="primary-button" type="submit">คำนวณภาษี</button>
+                </form>
+
+                <div class="tax-results">
+                  <article class="tax-card">
+                    <span>เงินได้สุทธิ</span>
+                    <strong id="taxableIncome">฿0</strong>
+                    <small>หลังหักค่าใช้จ่ายและลดหย่อน</small>
+                  </article>
+                  <article class="tax-card">
+                    <span>ภาษีประมาณการ</span>
+                    <strong id="estimatedTax">฿0</strong>
+                    <small id="effectiveTaxRate">อัตราเฉลี่ย 0%</small>
+                  </article>
+                  <article class="tax-card">
+                    <span>ต้องจ่ายเพิ่ม/ขอคืน</span>
+                    <strong id="taxBalance">฿0</strong>
+                    <small id="taxBalanceHint">เทียบกับภาษีที่ถูกหักไว้</small>
+                  </article>
+                </div>
+              </div>
+
+              <div class="tax-brackets" id="taxBreakdown"></div>
+            </div>
           </section>
 
           <section class="table-panel glass" id="transactions">
