@@ -1,15 +1,15 @@
 {
-  "name": "moneydesk",
+  "name": "sun-money",
   "version": "1.0.0",
-  "description": "Income and expense dashboard with user accounts",
+  "description": "Personal income and expense dashboard for Sun.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "dependencies": {
-    "pg": "^8.12.0"
-  },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "pg": "^8.12.0"
   }
 }

@@ -1,14 +1,9 @@
 services:
   - type: web
-    name: moneydesk
+    name: sun-money
     env: node
     plan: free
-    buildCommand: ""
+    buildCommand: npm install
     startCommand: npm start
-    envVars:
-      - key: SESSION_SECRET
-        generateValue: true
-      - key: DATABASE_URL
-        sync: false
-      - key: REQUIRE_DATABASE_URL
-        value: true
+    healthCheckPath: /healthz
+    autoDeploy: true
