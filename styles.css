@@ -13,7 +13,11 @@
     radial-gradient(circle at 12% 8%, rgba(45, 127, 249, 0.18), transparent 28%),
     radial-gradient(circle at 88% 12%, rgba(32, 180, 134, 0.14), transparent 30%),
     linear-gradient(135deg, #f7f9fc 0%, #e7edf6 46%, #f4f6fb 100%);
-  --shadow: 0 24px 70px rgba(39, 51, 76, 0.18);
+  --shadow: 0 18px 54px rgba(39, 51, 76, 0.14);
+  --shadow-soft: 0 10px 28px rgba(39, 51, 76, 0.1);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
   --blue: #2d7ff9;
   --mint: #20b486;
   --rose: #f05c7a;
@@ -36,7 +40,8 @@
     radial-gradient(circle at 12% 8%, rgba(45, 127, 249, 0.26), transparent 30%),
     radial-gradient(circle at 88% 12%, rgba(32, 180, 134, 0.18), transparent 30%),
     linear-gradient(135deg, #0d1320 0%, #151c2b 48%, #0f1623 100%);
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --shadow: 0 18px 54px rgba(0, 0, 0, 0.34);
+  --shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.24);
 }
 
 * {
@@ -53,6 +58,9 @@ body {
   color: var(--ink);
   font-family: "Inter", "Noto Sans Thai", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--page-bg);
+  font-size: 16px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -63,13 +71,29 @@ select {
 
 button {
   cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(45, 127, 249, 0.24);
+  outline-offset: 3px;
 }
 
 .shell {
-  width: min(1440px, 100%);
+  width: min(1360px, 100%);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 24px;
+  padding: 22px;
 }
 
 .glass {
@@ -86,9 +110,9 @@ button {
 .auth-view {
   min-height: calc(100vh - 48px);
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 480px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 460px);
   align-items: center;
-  gap: 28px;
+  gap: 26px;
 }
 
 .brand-panel {
@@ -101,10 +125,10 @@ button {
   width: min(680px, 100%);
   min-height: 480px;
   padding: 18px;
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(248, 251, 255, 0.42));
   border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 40px 90px rgba(44, 59, 85, 0.22);
+  box-shadow: var(--shadow);
 }
 
 :root[data-theme="dark"] .mac-window {
@@ -134,7 +158,7 @@ button {
   min-height: 410px;
   padding: 34px;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 20px;
   color: white;
   background:
     linear-gradient(140deg, rgba(23, 32, 42, 0.94), rgba(41, 54, 77, 0.9)),
@@ -144,8 +168,8 @@ button {
 .preview-card h1 {
   max-width: 540px;
   margin: 10px 0 0;
-  font-size: clamp(36px, 6vw, 66px);
-  line-height: 1.02;
+  font-size: 54px;
+  line-height: 1.08;
   letter-spacing: 0;
 }
 
@@ -213,14 +237,15 @@ button {
 .auth-card {
   display: grid;
   gap: 18px;
-  padding: 30px;
-  border-radius: 28px;
+  padding: 28px;
+  border-radius: var(--radius-xl);
 }
 
 .auth-card h2,
 .topbar h2 {
   margin: 0;
-  font-size: 34px;
+  font-size: 32px;
+  line-height: 1.18;
   letter-spacing: 0;
 }
 
@@ -272,9 +297,9 @@ label {
 input,
 select {
   width: 100%;
-  min-height: 48px;
+  min-height: 46px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 0 14px;
   color: var(--ink);
   background: var(--control-bg);
@@ -290,16 +315,24 @@ select:focus {
 .primary-button,
 .ghost-button,
 .icon-button {
-  min-height: 48px;
+  min-height: 46px;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   font-weight: 800;
 }
 
 .primary-button {
   color: white;
-  background: linear-gradient(135deg, #1e6ff2, #20b486);
+  background: linear-gradient(135deg, #1f6feb, #19a974);
   box-shadow: 0 14px 28px rgba(45, 127, 249, 0.24);
+}
+
+.primary-button:hover,
+.ghost-button:hover,
+.theme-toggle:hover,
+.edit-button:hover,
+.delete-button:hover {
+  transform: translateY(-1px);
 }
 
 .ghost-button {
@@ -342,23 +375,23 @@ select:focus {
 }
 
 .theme-toggle {
-  min-height: 48px;
+  min-height: 46px;
   padding: 0 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: var(--control-bg);
   font-weight: 800;
 }
 
 .online-pill {
-  min-height: 48px;
+  min-height: 46px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   background: var(--control-bg);
   font-weight: 800;
@@ -388,8 +421,8 @@ select:focus {
 
 .app-view {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 22px;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: 20px;
   min-height: calc(100vh - 48px);
 }
 
@@ -399,8 +432,8 @@ select:focus {
   height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
-  padding: 18px;
-  border-radius: 26px;
+  padding: 16px;
+  border-radius: var(--radius-xl);
 }
 
 .sidebar-top {
@@ -435,13 +468,14 @@ select:focus {
 }
 
 .nav-list a {
-  min-height: 46px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   padding: 0 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   color: var(--muted);
   text-decoration: none;
+  font-size: 15px;
   font-weight: 800;
 }
 
@@ -464,23 +498,30 @@ select:focus {
 
 .content {
   display: grid;
-  gap: 22px;
+  gap: 20px;
+  min-width: 0;
 }
 
 .topbar {
-  min-height: 106px;
+  min-height: 100px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px;
-  border-radius: 26px;
+  padding: 20px;
+  border-radius: var(--radius-xl);
 }
 
 .toolbar,
 .form-row {
   display: flex;
   gap: 12px;
+}
+
+.toolbar {
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .toolbar input {
@@ -505,7 +546,7 @@ select:focus {
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 16px;
 }
 
 .dashboard-charts {
@@ -513,21 +554,23 @@ select:focus {
 }
 
 .metric {
-  min-height: 154px;
+  min-height: 142px;
   display: grid;
   align-content: space-between;
-  padding: 22px;
-  border-radius: 24px;
+  padding: 20px;
+  border-radius: 20px;
   color: white;
-  box-shadow: 0 18px 45px rgba(39, 51, 76, 0.16);
+  box-shadow: var(--shadow-soft);
 }
 
 .metric span {
+  font-size: 14px;
   font-weight: 800;
 }
 
 .metric strong {
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-size: 38px;
+  line-height: 1.05;
   letter-spacing: 0;
 }
 
@@ -549,8 +592,8 @@ select:focus {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: minmax(340px, 0.85fr) minmax(360px, 1.15fr);
-  gap: 22px;
+  grid-template-columns: minmax(320px, 0.84fr) minmax(360px, 1.16fr);
+  gap: 20px;
 }
 
 .entry-panel,
@@ -558,8 +601,8 @@ select:focus {
 .trend-panel,
 .advice-panel,
 .table-panel {
-  padding: 22px;
-  border-radius: 26px;
+  padding: 20px;
+  border-radius: var(--radius-xl);
 }
 
 .entry-panel {
@@ -569,7 +612,7 @@ select:focus {
 
 .advice-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(340px, 1.1fr);
   gap: 18px;
 }
 
@@ -589,9 +632,9 @@ select:focus {
   display: grid;
   align-content: space-between;
   gap: 12px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: var(--soft-bg);
 }
 
@@ -603,7 +646,7 @@ select:focus {
 
 .advice-card strong {
   color: var(--ink);
-  font-size: clamp(22px, 2.4vw, 30px);
+  font-size: 26px;
   line-height: 1.1;
 }
 
@@ -647,7 +690,7 @@ select:focus {
 
 .tax-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  grid-template-columns: minmax(300px, 0.9fr) minmax(340px, 1.1fr);
   gap: 18px;
 }
 
@@ -667,9 +710,9 @@ select:focus {
   align-content: space-between;
   gap: 12px;
   min-width: 0;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: var(--soft-bg);
 }
 
@@ -681,7 +724,7 @@ select:focus {
 
 .tax-card strong {
   color: var(--ink);
-  font-size: clamp(22px, 2.4vw, 30px);
+  font-size: 26px;
   line-height: 1.1;
 }
 
@@ -758,16 +801,17 @@ select:focus {
   align-items: end;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .section-title h3 {
   margin: 0;
-  font-size: 22px;
+  font-size: 21px;
+  line-height: 1.25;
 }
 
 .chart-area {
-  min-height: 312px;
+  min-height: 292px;
   display: grid;
   align-content: start;
   grid-template-columns: minmax(220px, 0.82fr) minmax(260px, 1.18fr);
@@ -805,7 +849,7 @@ select:focus {
 }
 
 .line-chart {
-  min-height: 360px;
+  min-height: 340px;
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 14px;
@@ -843,9 +887,9 @@ select:focus {
 
 .line-chart-svg {
   width: 100%;
-  min-height: 300px;
+  min-height: 292px;
   overflow: visible;
-  border-radius: 22px;
+  border-radius: 20px;
   background: var(--soft-bg);
   border: 1px solid var(--line);
 }
@@ -910,7 +954,7 @@ select:focus {
 }
 
 .donut-chart {
-  width: min(260px, 100%);
+  width: min(238px, 100%);
   aspect-ratio: 1;
   display: grid;
   place-items: center;
@@ -939,7 +983,7 @@ select:focus {
 
 .donut-chart strong {
   color: var(--ink);
-  font-size: clamp(20px, 2.2vw, 28px);
+  font-size: 24px;
 }
 
 .pie-legend {
@@ -952,7 +996,7 @@ select:focus {
   grid-template-columns: 38px minmax(0, 1fr);
   gap: 11px;
   align-items: center;
-  padding: 12px;
+  padding: 11px 12px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--soft-bg);
@@ -1006,7 +1050,7 @@ table {
 
 th,
 td {
-  padding: 14px 12px;
+  padding: 13px 12px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   white-space: nowrap;
@@ -1020,7 +1064,12 @@ th {
 }
 
 td {
+  color: var(--ink);
   font-weight: 700;
+}
+
+tbody tr:hover {
+  background: var(--soft-bg);
 }
 
 .right {
@@ -1108,13 +1157,23 @@ td {
   }
 
   .nav-list {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 2px;
   }
 }
 
 @media (max-width: 720px) {
   .shell {
-    padding: 14px;
+    padding: 12px;
   }
 
   .auth-view {
@@ -1129,11 +1188,12 @@ td {
 
   .preview-card {
     min-height: 330px;
-    padding: 24px;
+    padding: 22px;
   }
 
   .preview-card h1 {
-    font-size: 38px;
+    font-size: 34px;
+    line-height: 1.12;
   }
 
   .mini-chart {
@@ -1146,9 +1206,13 @@ td {
     bottom: 24px;
   }
 
-  .summary-grid,
-  .nav-list {
+  .summary-grid {
     grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .line-chart {
@@ -1169,6 +1233,38 @@ td {
   .section-title {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .topbar {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .auth-card h2,
+  .topbar h2 {
+    font-size: 28px;
+  }
+
+  .section-title h3 {
+    font-size: 20px;
+  }
+
+  .metric {
+    min-height: 126px;
+    padding: 18px;
+  }
+
+  .metric strong {
+    font-size: 32px;
+  }
+
+  .entry-panel,
+  .analysis-panel,
+  .trend-panel,
+  .advice-panel,
+  .table-panel {
+    padding: 18px;
+    border-radius: 20px;
   }
 
   .toolbar input {
